@@ -8,7 +8,10 @@ import (
 
 var nowFunc = time.Now
 
-const verifyToleranceSeconds = 300
+// VerifyToleranceSeconds is the maximum allowed time difference between the delivery timestamp
+// and the receiver's clock, defaulting to 300 seconds (5 minutes).
+const VerifyToleranceSeconds = 300
+const verifyToleranceSeconds = VerifyToleranceSeconds
 
 // VerifyResult is the outcome of verifying one webhook delivery signature.
 type VerifyResult struct {

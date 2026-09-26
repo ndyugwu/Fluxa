@@ -3,12 +3,9 @@ package webhook
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -58,13 +55,13 @@ type Service interface {
 }
 
 type service struct {
-	repo               Repository
-	rdb                redis.UniversalClient
-	client             *http.Client
-	queueClient        *queue.Client
-	maxPerMinute       int
-	maxAttempts        int
-	backoffSchedule    []time.Time
+	repo                 Repository
+	rdb                  redis.UniversalClient
+	client               *http.Client
+	queueClient          *queue.Client
+	maxPerMinute         int
+	maxAttempts          int
+	backoffSchedule      []time.Time
 	allowPrivateNetworks bool
 }
 
@@ -215,8 +212,7 @@ func (s *service) ReplayDeadLetter(ctx context.Context, deadLetterID string) err
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	if err := s.repo.CreateDelivery(ctx, newDel);
-	err != nil {
+	if err := s.repo.CreateDelivery(ctx, newDel); err != nil {
 		return err
 	}
 
@@ -799,8 +795,11 @@ func (s *service) attemptConfigDelivery(ctx context.Context, config *domain.Tena
 		fail(fmt.Errorf("build webhook request: %w", err))
 		return
 	}
+	timestamp := fmt.Sprintf("%d", now.Unix())
+	sig := sign(config.Secret, timestamp, delivery.Payload)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Fluxa-Signature", sign(config.Secret, delivery.Payload))
+	req.Header.Set("X-Fluxa-Signature", sig)
+	req.Header.Set("X-Fluxa-Timestamp", timestamp)
 	req.Header.Set("X-Fluxa-Event", string(delivery.EventType))
 	req.Header.Set("X-Fluxa-Tenant-ID", delivery.TenantID)
 
