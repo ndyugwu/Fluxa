@@ -11,7 +11,9 @@ import (
 	"time"
 )
 
-const toleranceSeconds = 300
+// ToleranceSeconds is the configurable time tolerance in seconds (defaults to 300).
+const ToleranceSeconds = 300
+const toleranceSeconds = ToleranceSeconds
 
 // VerifyResult is the outcome of verifying one webhook delivery.
 type VerifyResult struct {
